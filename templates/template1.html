@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Booking</title>
+</head>
+<body>
+    <h1>Welcome to our Hotel Booking System</h1>
+    <!-- Кнопки навигации -->
+    <div>
+        <a href="{{ url_for('logout') }}">Выйти</a>
+        <a href="#">Уведомления</a>
+        <a href="{{ url_for('profile') }}">Личный кабинет</a>
+        <a href="#">Поиск</a>
+        <a href="#">Поддержка</a>
+    </div>
+    <h2>Available Rooms:</h2>
+    <form action="/book" method="post">
+        <ul>
+            {% for room_id, room in rooms.items() %}
+                <li>
+                    {{ room.name }} -
+                    {% if room.available %}
+                        <input type="radio" name="room_id" value="{{ room_id }}">
+                    {% else %}
+                        Not Available
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <input type="submit" value="Book">
+    </form>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!-- profile.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+</head>
+<body>
+    <h1>Profile</h1>
+    <div>
+        <h2>Username: {{ user.username }}</h2>
+        <h3>Email: {{ user.email }}</h3>
+        <h3>Role: {{ user.role }}</h3>
+        <!-- Форма для смены пароля -->
+        <form action="{{ url_for('profile') }}" method="post">
+            <label for="old_password">Old Password:</label>
+            <input type="password" id="old_password" name="old_password" required><br>
+            <label for="new_password">New Password:</label>
+            <input type="password" id="new_password" name="new_password" required><br>
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required><br>
+            <input type="submit" value="Change Password">
+        </form>
+        <!-- Ссылка для подачи заявки на статус владельца гостиницы -->
+        <h3><a href="{{ url_for('apply_for_owner') }}">Apply for Hotel Owner Status</a></h3>
+    </div>
+</body>
+</html>
