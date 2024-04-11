@@ -9,11 +9,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
 
+
 # Определение моделей базы данных
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     available = db.Column(db.Boolean, default=True)
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,6 +25,7 @@ class User(db.Model):
     role = db.Column(db.String(50), nullable=False, default='user')
     is_admin = db.Column(db.Boolean, default=False)
 
+
 # Маршруты и функции представления
 @app.route('/')
 def index():
@@ -30,6 +33,7 @@ def index():
         rooms = Room.query.all()
         return render_template('index.html', rooms=rooms)
     return redirect(url_for('login'))
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -53,18 +57,38 @@ def profile():
         return render_template('profile.html', user=user)
     return redirect(url_for('login'))
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
+
+        # Хэшируем пароль
         hashed_password = generate_password_hash(password)
+
+        # Проверяем, существует ли пользователь с таким именем или email
+        existing_user = User.query.filter_by(username=username).first()
+        existing_email = User.query.filter_by(email=email).first()
+
+        # Если пользователь или email уже существуют, возвращаем ошибку
+        if existing_user:
+            error = "Username already exists. Please choose a different one."
+            return render_template('register.html', error=error)
+        elif existing_email:
+            error = "Email address already registered. Please use a different email."
+            return render_template('register.html', error=error)
+
+        # Создаем нового пользователя и добавляем его в базу данных
         new_user = User(username=username, password=hashed_password, email=email)
         db.session.add(new_user)
         db.session.commit()
+
         return redirect(url_for('login'))
+
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -83,10 +107,12 @@ def login():
             error = "Invalid username or password. Please try again."
     return render_template('login.html', error=error)
 
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
+
 
 @app.route('/book', methods=['POST'])
 def book():
@@ -100,19 +126,24 @@ def book():
         return f"Room {room_id} has been booked successfully!"
     else:
         return "Sorry, the selected room is not available."
+
+
 @app.route('/notifications')
 def notifications():
     # Логика для получения уведомлений из базы данных
     notifications = []  # Здесь должна быть логика для получения уведомлений
     return render_template('notifications.html', notifications=notifications)
 
+
 @app.route('/search')
 def search():
     return render_template('search.html')
 
+
 @app.route('/support_chat')
 def support_chat():
     return render_template('support_chat.html')
+
 
 @app.route('/apply_for_owner', methods=['GET', 'POST'])
 def apply_for_owner():
@@ -120,6 +151,7 @@ def apply_for_owner():
         # Обработка данных из формы и сохранение заявки в базу данных
         return redirect(url_for('index'))  # Перенаправление на страницу после успешной подачи заявки
     return render_template('apply_for_owner.html')
+
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
