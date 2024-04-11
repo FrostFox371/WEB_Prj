@@ -14,13 +14,14 @@
         <a href="{{ url_for('logout') }}">Выйти</a>
     </div>
     <h2>Отели:</h2>
+    <a href="{{ url_for('get_all_hotels') }}">Посмотреть все отели мира</a>
     <form id="bookForm" action="/book" method="post">
         <ul>
             {% for room in rooms %}
                 <li>
                     {{ room.name }} -
                     {% if room.available %}
-                        <button type="button" class="bookButton" data-room-id="{{ room.id }}">Book</button>
+                        <button type="submit" class="bookButton" name="room_id" value="{{ room.id }}">Book</button>
                     {% else %}
                         Нет свободных мест
                     {% endif %}
@@ -28,17 +29,17 @@
             {% endfor %}
         </ul>
     </form>
-
     <div id="hotelsList"></div>
-
     <script>
         $(document).ready(function() {
-            $('.bookButton').click(function() {
-                var roomId = $(this).data('room-id');
+            $('.bookButton').click(function(e) {
+                e.preventDefault(); // предотвращаем отправку формы
+                var roomId = $(this).val();
                 $.ajax({
                     url: '/get_all_hotels',
                     type: 'GET',
                     success: function(response) {
+                        console.log(response);
                         $('#hotelsList').html(response);
                     },
                     error: function(xhr) {
