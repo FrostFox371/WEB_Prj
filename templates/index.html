@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hotel Booking</title>
+    <title>Главная</title>
 </head>
 <body>
-    <h1>Welcome to our Hotel Booking System</h1>
-    <!-- Кнопки навигации -->
+    <h1>Добро пожаловать в систему бронирования отелей!</h1>
+    <!-- Navigation buttons -->
     <div>
-        <a href="{{ url_for('logout') }}">Выйти</a>
-        <a href="#">Уведомления</a>
         <a href="{{ url_for('profile') }}">Личный кабинет</a>
         <a href="#">Поиск</a>
         <a href="#">Поддержка</a>
+        <a href="#">Уведомления</a>
+        <a href="{{ url_for('logout') }}">Выйти</a>
     </div>
-    <h2>Available Rooms:</h2>
+
+    <h2>Отели:</h2>
     <form action="/book" method="post">
         <ul>
-            {% for room_id, room in rooms.items() %}
+            {% for room in rooms %}
                 <li>
                     {{ room.name }} -
                     {% if room.available %}
-                        <input type="radio" name="room_id" value="{{ room_id }}">
+                        <input type="radio" name="room_id" value="{{ room.id }}">
                     {% else %}
-                        Not Available
+                        Нет свободных мест
                     {% endif %}
                 </li>
             {% endfor %}

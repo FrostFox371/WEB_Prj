@@ -50,9 +50,9 @@ def profile():
                     db.session.commit()
                     return redirect(url_for('index'))
                 else:
-                    error = "New password and confirm password do not match."
+                    error = "Пароли не совпадают!."
             else:
-                error = "Incorrect old password."
+                error = "Неправильный старый пароль."
             return render_template('profile.html', user=user, error=error)
         return render_template('profile.html', user=user)
     return redirect(url_for('login'))
@@ -74,10 +74,10 @@ def register():
 
         # Если пользователь или email уже существуют, возвращаем ошибку
         if existing_user:
-            error = "Username already exists. Please choose a different one."
+            error = "Такой пользователь уже существует!"
             return render_template('register.html', error=error)
         elif existing_email:
-            error = "Email address already registered. Please use a different email."
+            error = "Такая почта уже зарегестрирована!"
             return render_template('register.html', error=error)
 
         # Создаем нового пользователя и добавляем его в базу данных
@@ -104,7 +104,7 @@ def login():
             else:
                 return redirect(url_for('index'))
         else:
-            error = "Invalid username or password. Please try again."
+            error = "Неправильное имя или пароль."
     return render_template('login.html', error=error)
 
 
