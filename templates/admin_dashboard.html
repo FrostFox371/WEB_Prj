@@ -1,11 +1,10 @@
-<!-- admin_dashboard.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>Доска заявок</title>
 </head>
 <body>
-    <h1>Доска заявокd</h1>
+    <h1>Доска заявок</h1>
     <table>
         <tr>
             <th>Имя</th>
@@ -25,8 +24,14 @@
             <td>{{ application.additional_info }}</td>
             <td>{{ application.status }}</td>
             <td>
-                <a href="{{ url_for('process_application', application_id=application.id, action='accept') }}">Accept</a>
-                <a href="{{ url_for('process_application', application_id=application.id, action='reject') }}">Reject</a>
+                <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                    <input type="hidden" name="application_id" value="{{ application.id }}">
+                    <select name="action">
+                        <option value="accept">Принять</option>
+                        <option value="reject">Отклонить</option>
+                    </select>
+                    <button type="submit">Отправить</button>
+                </form>
             </td>
         </tr>
         {% endfor %}

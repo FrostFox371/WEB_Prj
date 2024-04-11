@@ -7,13 +7,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
 
-
 # Модели данных
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     available = db.Column(db.Boolean, default=True)
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,17 +21,6 @@ class User(db.Model):
     role = db.Column(db.String(50), nullable=False, default='user')
     is_admin = db.Column(db.Boolean, default=False)
 
-
-class OwnerApplication(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    phone = db.Column(db.String(20), nullable=False)
-    address = db.Column(db.String(200), nullable=False)
-    additional_info = db.Column(db.Text)
-    status = db.Column(db.String(20), default='pending')
-
-
 # Маршруты и функции представления
 @app.route('/')
 def index():
@@ -41,7 +28,6 @@ def index():
         rooms = Room.query.all()
         return render_template('index.html', rooms=rooms)
     return redirect(url_for('login'))
-
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -64,6 +50,7 @@ def profile():
             return render_template('profile.html', user=user, error=error)
         return render_template('profile.html', user=user)
     return redirect(url_for('login'))
+
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -160,10 +147,27 @@ def apply_for_owner():
     return render_template('apply_for_owner.html')
 
 
-@app.route('/admin_dashboard')
+@app.route('/admin/dashboard')
 def admin_dashboard():
-    applications = OwnerApplication.query.all()
-    return render_template('admin_dashboard.html', applications=applications)
+    if 'username' in session:
+        username = session['username']
+        user = User.query.filter_by(username=username).first()
+        if user.is_admin:
+            applications = OwnerApplication.query.all()
+            if request.method == 'POST':
+                action = request.form['action']
+                application_id = request.form['application_id']
+                application = OwnerApplication.query.get_or_404(application_id)
+                if action == 'accept':
+                    application.status = 'accepted'
+                elif action == 'reject':
+                    application.status = 'rejected'
+                db.session.commit()
+            return render_template('admin_dashboard.html', user=user, applications=applications)
+        else:
+            return redirect(url_for('index'))
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/admin/process_application/<int:application_id>/<action>')
