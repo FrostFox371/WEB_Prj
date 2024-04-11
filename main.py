@@ -1,16 +1,14 @@
-# Импорт необходимых модулей и классов
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Создание приложения Flask
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
 
 
-# Определение моделей базы данных
+# Модели данных
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
@@ -24,6 +22,16 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
     is_admin = db.Column(db.Boolean, default=False)
+
+
+class OwnerApplication(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    address = db.Column(db.String(200), nullable=False)
+    additional_info = db.Column(db.Text)
+    status = db.Column(db.String(20), default='pending')
 
 
 # Маршруты и функции представления
@@ -64,29 +72,19 @@ def register():
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
-
-        # Хэшируем пароль
         hashed_password = generate_password_hash(password)
-
-        # Проверяем, существует ли пользователь с таким именем или email
         existing_user = User.query.filter_by(username=username).first()
         existing_email = User.query.filter_by(email=email).first()
-
-        # Если пользователь или email уже существуют, возвращаем ошибку
         if existing_user:
             error = "Такой пользователь уже существует!"
             return render_template('register.html', error=error)
         elif existing_email:
             error = "Такая почта уже зарегестрирована!"
             return render_template('register.html', error=error)
-
-        # Создаем нового пользователя и добавляем его в базу данных
         new_user = User(username=username, password=hashed_password, email=email)
         db.session.add(new_user)
         db.session.commit()
-
         return redirect(url_for('login'))
-
     return render_template('register.html')
 
 
@@ -98,14 +96,16 @@ def login():
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
-            session['username'] = username
-            if user.is_admin:
-                return redirect(url_for('admin_dashboard'))
-            else:
-                return redirect(url_for('index'))
-        else:
-            error = "Неправильное имя или пароль."
-    return render_template('login.html', error=error)
+
+
+session['username'] = username
+if user.is_admin:
+    return redirect(url_for('admin_dashboard'))
+else:
+    return redirect(url_for('index'))
+else:
+error = "Неправильное имя или пароль."
+return render_template('login.html', error=error)
 
 
 @app.route('/logout')
@@ -148,59 +148,39 @@ def support_chat():
 @app.route('/apply_for_owner', methods=['GET', 'POST'])
 def apply_for_owner():
     if request.method == 'POST':
-        # Обработка данных из формы и сохранение заявки в базу данных
-        return redirect(url_for('index'))  # Перенаправление на страницу после успешной подачи заявки
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form['phone']
+        address = request.form['address']
+        additional_info = request.form['additional_info']
+
+        new_application = OwnerApplication(name=name, email=email, phone=phone, address=address,
+                                           additional_info=additional_info)
+        db.session.add(new_application)
+        db.session.commit()
+        return redirect(url_for('index'))
+
     return render_template('apply_for_owner.html')
 
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    # Логика для отображения заявок и их управления
-    return render_template('admin_dashboard.html')
+    applications = OwnerApplication.query.all()
+    return render_template('admin_dashboard.html', applications=applications)
 
 
-# Обработчики ошибок
-@app.errorhandler(400)
-def bad_request_error(error):
-    return render_template('error.html', error_code=400, error_message="Bad Request"), 400
+@app.route('/admin/process_application/<int:application_id>/<action>')
+def process_application(application_id, action):
+    application = OwnerApplication.query.get_or_404(application_id)
 
+    if action == 'accept':
+        application.status = 'accepted'
+    elif action == 'reject':
+        application.status = 'rejected'
 
-@app.errorhandler(401)
-def unauthorized_error(error):
-    return render_template('error.html', error_code=401, error_message="Unauthorized"), 401
-
-
-@app.errorhandler(403)
-def forbidden_error(error):
-    return render_template('error.html', error_code=403, error_message="Forbidden"), 403
-
-
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('error.html', error_code=404, error_message="Page not found"), 404
-
-
-@app.errorhandler(500)
-def internal_error(error):
-    return render_template('error.html', error_code=500, error_message="Internal Server Error"), 500
-
-
-@app.errorhandler(502)
-def bad_gateway_error(error):
-    return render_template('error.html', error_code=502, error_message="Bad Gateway"), 502
-
-
-@app.errorhandler(503)
-def service_unavailable_error(error):
-    return render_template('error.html', error_code=503, error_message="Service Unavailable"), 503
-
-
-@app.errorhandler(505)
-def http_version_not_supported_error(error):
-    return render_template('error.html', error_code=505, error_message="HTTP Version Not Supported"), 505
+    db.session.commit()
+    return redirect(url_for('admin_dashboard'))
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)

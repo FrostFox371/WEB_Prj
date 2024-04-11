@@ -1,0 +1,35 @@
+<!-- admin_dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Доска заявок</title>
+</head>
+<body>
+    <h1>Доска заявокd</h1>
+    <table>
+        <tr>
+            <th>Имя</th>
+            <th>Email</th>
+            <th>Телефон</th>
+            <th>Адрес</th>
+            <th>Прочее</th>
+            <th>Status</th>
+            <th>Действие</th>
+        </tr>
+        {% for application in applications %}
+        <tr>
+            <td>{{ application.name }}</td>
+            <td>{{ application.email }}</td>
+            <td>{{ application.phone }}</td>
+            <td>{{ application.address }}</td>
+            <td>{{ application.additional_info }}</td>
+            <td>{{ application.status }}</td>
+            <td>
+                <a href="{{ url_for('process_application', application_id=application.id, action='accept') }}">Accept</a>
+                <a href="{{ url_for('process_application', application_id=application.id, action='reject') }}">Reject</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
