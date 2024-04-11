@@ -2,10 +2,10 @@
 <html>
 <head>
     <title>Главная</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <h1>Добро пожаловать в систему бронирования отелей!</h1>
-    <!-- Navigation buttons -->
     <div>
         <a href="{{ url_for('profile') }}">Личный кабинет</a>
         <a href="#">Поиск</a>
@@ -13,22 +13,40 @@
         <a href="#">Уведомления</a>
         <a href="{{ url_for('logout') }}">Выйти</a>
     </div>
-
     <h2>Отели:</h2>
-    <form action="/book" method="post">
+    <form id="bookForm" action="/book" method="post">
         <ul>
             {% for room in rooms %}
                 <li>
                     {{ room.name }} -
                     {% if room.available %}
-                        <input type="radio" name="room_id" value="{{ room.id }}">
+                        <button type="button" class="bookButton" data-room-id="{{ room.id }}">Book</button>
                     {% else %}
                         Нет свободных мест
                     {% endif %}
                 </li>
             {% endfor %}
         </ul>
-        <input type="submit" value="Book">
     </form>
+
+    <div id="hotelsList"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('.bookButton').click(function() {
+                var roomId = $(this).data('room-id');
+                $.ajax({
+                    url: '/get_all_hotels',
+                    type: 'GET',
+                    success: function(response) {
+                        $('#hotelsList').html(response);
+                    },
+                    error: function(xhr) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

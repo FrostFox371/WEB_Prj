@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+import requests
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
@@ -52,6 +53,25 @@ def index():
         rooms = Room.query.all()
         return render_template('index.html', rooms=rooms)
     return redirect(url_for('login'))
+
+
+@app.route('/get_all_hotels', methods=['GET'])
+def get_all_hotels():
+    url = 'https://overpass-api.de/api/interpreter'
+    query = """
+    [out:json];
+    node["tourism"="hotel"];
+    out;
+    """
+
+    response = requests.post(url, data=query)
+
+    if response.status_code == 200:
+        hotels_data = response.json()
+        hotels = hotels_data.get('elements', [])
+        return render_template('hotels_list.html', hotels=hotels)
+    else:
+        return "Ошибка при получении данных об отелях"
 
 
 @app.route('/profile', methods=['GET', 'POST'])
