@@ -1,0 +1,20 @@
+<!-- admin_login.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Администраторский вход</title>
+</head>
+<body>
+    <h1>Вход для администратора</h1>
+    <form method="POST" action="{{ url_for('admin_login') }}">
+        <label for="username">Имя пользователя:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required><br>
+        <button type="submit">Войти</button>
+    </form>
+    {% if error %}
+    <p>{{ error }}</p>
+    {% endif %}
+</body>
+</html>

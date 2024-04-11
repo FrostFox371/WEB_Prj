@@ -7,11 +7,22 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
 
+
 # Модели данных
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     available = db.Column(db.Boolean, default=True)
+
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    # Определяем отношение с пользовательской моделью
+    user_relation = db.relationship('User', backref=db.backref('admin_rel', uselist=False))
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,6 +31,9 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
     is_admin = db.Column(db.Boolean, default=False)
+    # Добавляем связь с таблицей администраторов
+    admin_relation = db.relationship('Admin', backref='user_rel', uselist=False)
+
 
 class OwnerApplication(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -30,6 +44,7 @@ class OwnerApplication(db.Model):
     additional_info = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')
 
+
 # Маршруты и функции представления
 @app.route('/')
 def index():
@@ -37,6 +52,7 @@ def index():
         rooms = Room.query.all()
         return render_template('index.html', rooms=rooms)
     return redirect(url_for('login'))
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -61,7 +77,6 @@ def profile():
     return redirect(url_for('login'))
 
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -75,7 +90,7 @@ def register():
             error = "Такой пользователь уже существует!"
             return render_template('register.html', error=error)
         elif existing_email:
-            error = "Такая почта уже зарегестрирована!"
+            error = "Такая почта уже зарегистрирована!"
             return render_template('register.html', error=error)
         new_user = User(username=username, password=hashed_password, email=email)
         db.session.add(new_user)
@@ -100,6 +115,22 @@ def login():
         else:
             error = "Неправильное имя или пароль."
     return render_template('login.html', error=error)
+
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        admin = Admin.query.filter_by(username=username).first()
+        if admin and check_password_hash(admin.password, password):
+            session['username'] = username
+            return redirect(url_for('admin_dashboard'))
+        else:
+            error = "Неправильное имя или пароль для администратора."
+    return render_template('admin_login.html', error=error)
+
 
 @app.route('/logout')
 def logout():
@@ -160,8 +191,8 @@ def apply_for_owner():
 def admin_dashboard():
     if 'username' in session:
         username = session['username']
-        user = User.query.filter_by(username=username).first()
-        if user.is_admin:
+        user = User.query.filter_by(admin_username=username).first()
+        if user and user.is_admin:
             applications = OwnerApplication.query.all()
             if request.method == 'POST':
                 action = request.form['action']
@@ -174,9 +205,9 @@ def admin_dashboard():
                 db.session.commit()
             return render_template('admin_dashboard.html', user=user, applications=applications)
         else:
-            return redirect(url_for('index'))
+            return redirect(url_for('admin_login'))
     else:
-        return redirect(url_for('login'))
+        return redirect(url_for('admin_login'))
 
 
 @app.route('/admin/process_application/<int:application_id>/<action>')
