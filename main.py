@@ -21,6 +21,15 @@ class User(db.Model):
     role = db.Column(db.String(50), nullable=False, default='user')
     is_admin = db.Column(db.Boolean, default=False)
 
+class OwnerApplication(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    address = db.Column(db.String(100), nullable=False)
+    additional_info = db.Column(db.Text)
+    status = db.Column(db.String(20), default='pending')
+
 # Маршруты и функции представления
 @app.route('/')
 def index():
