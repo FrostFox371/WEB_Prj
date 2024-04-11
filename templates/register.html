@@ -4,16 +4,16 @@
     <title>Регистрация</title>
 </head>
 <body>
-    <h1>Register</h1>
+    <h1>Регистрация</h1>
     <form action="{{ url_for('register') }}" method="post">
-        <label for="username">Username:</label><br>
+        <label for="username">Логин:</label><br>
         <input type="text" id="username" name="username" required><br>
-        <label for="email">Email:</label><br> <!-- Добавлено новое поле для email -->
-        <input type="email" id="email" name="email" required><br> <!-- Используем type="email" для валидации email -->
-        <label for="password">Password:</label><br>
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" required><br>
+        <label for="password">Пароль:</label><br>
         <input type="password" id="password" name="password" required><br>
         <input type="submit" value="Register">
     </form>
-    <p>Уже есть аккаунт?? <a href="{{ url_for('login') }}">Войти</a>.</p>
+    <p>Уже есть аккаунт?<a href="{{ url_for('login') }}">Войти</a>.</p>
 </body>
 </html>
