@@ -21,8 +21,6 @@ class Admin(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
-    # Определяем отношение с пользовательской моделью
-    user_relation = db.relationship('User', backref=db.backref('admin_rel', uselist=False))
 
 
 class User(db.Model):
@@ -241,6 +239,47 @@ def process_application(application_id, action):
 
     db.session.commit()
     return redirect(url_for('admin_dashboard'))
+
+# Обработчики ошибок
+@app.errorhandler(400)
+def bad_request_error(error):
+    return render_template('error.html', error_code=400, error_message="Bad Request"), 400
+
+
+@app.errorhandler(401)
+def unauthorized_error(error):
+    return render_template('error.html', error_code=401, error_message="Unauthorized"), 401
+
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('error.html', error_code=403, error_message="Forbidden"), 403
+
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html', error_code=404, error_message="Page not found"), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error.html', error_code=500, error_message="Internal Server Error"), 500
+
+
+@app.errorhandler(502)
+def bad_gateway_error(error):
+    return render_template('error.html', error_code=502, error_message="Bad Gateway"), 502
+
+
+@app.errorhandler(503)
+def service_unavailable_error(error):
+    return render_template('error.html', error_code=503, error_message="Service Unavailable"), 503
+
+
+@app.errorhandler(505)
+def http_version_not_supported_error(error):
+    return render_template('error.html', error_code=505, error_message="HTTP Version Not Supported"), 505
+
 
 
 if __name__ == '__main__':
