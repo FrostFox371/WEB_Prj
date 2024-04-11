@@ -96,17 +96,14 @@ def login():
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
-
-
-session['username'] = username
-if user.is_admin:
-    return redirect(url_for('admin_dashboard'))
-else:
-    return redirect(url_for('index'))
-else:
-error = "Неправильное имя или пароль."
-return render_template('login.html', error=error)
-
+            session['username'] = username
+            if user.is_admin:
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('index'))
+        else:
+            error = "Неправильное имя или пароль."
+    return render_template('login.html', error=error)
 
 @app.route('/logout')
 def logout():
@@ -183,4 +180,6 @@ def process_application(application_id, action):
 
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
