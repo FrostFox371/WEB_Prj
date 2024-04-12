@@ -88,19 +88,17 @@ def profile():
             old_password = request.form['old_password']
             new_password = request.form['new_password']
             confirm_password = request.form['confirm_password']
-            if check_password_hash(user.password, old_password):
-                if new_password == confirm_password:
-                    user.password = generate_password_hash(new_password)
-                    db.session.commit()
-                    return redirect(url_for('index'))
-                else:
-                    error = "Пароли не совпадают!."
+            if not check_password_hash(user.password, old_password):
+                flash("Неправильный старый пароль.")
+            elif new_password != confirm_password:
+                flash("Пароли не совпадают!")
             else:
-                error = "Неправильный старый пароль."
-            return render_template('profile.html', user=user, error=error)
+                user.password = generate_password_hash(new_password)
+                db.session.commit()
+                flash("Пароль успешно изменен!")
+                return redirect(url_for('index'))
         return render_template('profile.html', user=user)
     return redirect(url_for('login'))
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
