@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+from collections import defaultdict
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
@@ -61,13 +62,19 @@ def get_all_hotels():
     node["tourism"="hotel"];
     out;
     """
-
     response = requests.post(url, data=query)
-
     if response.status_code == 200:
         hotels_data = response.json()
         hotels = hotels_data.get('elements', [])
-        return render_template('hotels_list.html', hotels=hotels)
+
+        # Организация отелей по странам и городам
+        hotels_by_country = defaultdict(lambda: defaultdict(list))
+        for hotel in hotels:
+            country = hotel.get('tags', {}).get('addr:country', 'Неизвестно')
+            city = hotel.get('tags', {}).get('addr:city', 'Неизвестно')
+            hotels_by_country[country][city].append(hotel)
+
+        return render_template('hotels_list.html', hotels_by_country=hotels_by_country)
     else:
         return "Ошибка при получении данных об отелях"
 
@@ -209,8 +216,8 @@ def apply_for_owner():
 def admin_dashboard():
     if 'username' in session:
         username = session['username']
-        user = User.query.filter_by(admin_username=username).first()
-        if user and user.is_admin:
+        admin = Admin.query.filter_by(username=username).first()
+        if admin:
             applications = OwnerApplication.query.all()
             if request.method == 'POST':
                 action = request.form['action']
@@ -221,24 +228,27 @@ def admin_dashboard():
                 elif action == 'reject':
                     application.status = 'rejected'
                 db.session.commit()
-            return render_template('admin_dashboard.html', user=user, applications=applications)
+            return render_template('admin_dashboard.html', user=admin, applications=applications)
         else:
             return redirect(url_for('admin_login'))
     else:
         return redirect(url_for('admin_login'))
 
 
-@app.route('/admin/process_application/<int:application_id>/<action>')
+@app.route('/admin/process_application/<int:application_id>/<action>', methods=['POST'])
 def process_application(application_id, action):
-    application = OwnerApplication.query.get_or_404(application_id)
+    if request.method == 'POST':
+        application = OwnerApplication.query.get_or_404(application_id)
+        if action == 'accept':
+            application.status = 'accepted'
+        elif action == 'reject':
+            application.status = 'rejected'
+        db.session.commit()
+        return redirect(url_for('admin_dashboard'))
+    else:
+        # Если запрос не является POST, вернуть ошибку
+        return "Метод не поддерживается", 405
 
-    if action == 'accept':
-        application.status = 'accepted'
-    elif action == 'reject':
-        application.status = 'rejected'
-
-    db.session.commit()
-    return redirect(url_for('admin_dashboard'))
 
 # Обработчики ошибок
 @app.errorhandler(400)
@@ -279,7 +289,6 @@ def service_unavailable_error(error):
 @app.errorhandler(505)
 def http_version_not_supported_error(error):
     return render_template('error.html', error_code=505, error_message="HTTP Version Not Supported"), 505
-
 
 
 if __name__ == '__main__':

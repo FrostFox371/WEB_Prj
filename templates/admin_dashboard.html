@@ -24,13 +24,11 @@
             <td>{{ application.additional_info }}</td>
             <td>{{ application.status }}</td>
             <td>
-                <form method="POST" action="{{ url_for('admin_dashboard') }}">
-                    <input type="hidden" name="application_id" value="{{ application.id }}">
-                    <select name="action">
-                        <option value="accept">Принять</option>
-                        <option value="reject">Отклонить</option>
-                    </select>
-                    <button type="submit">Отправить</button>
+                <form method="POST" action="{{ url_for('process_application', application_id=application.id, action='accept') }}">
+                    <button type="submit">Принять</button>
+                </form>
+                <form method="POST" action="{{ url_for('process_application', application_id=application.id, action='reject') }}">
+                    <button type="submit">Отклонить</button>
                 </form>
             </td>
         </tr>
