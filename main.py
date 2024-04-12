@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
@@ -112,15 +112,17 @@ def register():
         existing_user = User.query.filter_by(username=username).first()
         existing_email = User.query.filter_by(email=email).first()
         if existing_user:
-            error = "Такой пользователь уже существует!"
-            return render_template('register.html', error=error)
+            flash("Такой пользователь уже существует!")
+            return render_template('register.html')
         elif existing_email:
-            error = "Такая почта уже зарегистрирована!"
-            return render_template('register.html', error=error)
-        new_user = User(username=username, password=hashed_password, email=email)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+            flash("Такая почта уже зарегистрирована!")
+            return render_template('register.html')
+        else:
+            new_user = User(username=username, password=hashed_password, email=email)
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Регистрация успешно завершена! Теперь вы можете войти.")
+            return redirect(url_for('login'))
     return render_template('register.html')
 
 

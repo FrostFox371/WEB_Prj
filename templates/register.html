@@ -5,6 +5,15 @@
 </head>
 <body>
     <h1>Регистрация</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
     <form action="{{ url_for('register') }}" method="post">
         <label for="username">Логин:</label><br>
         <input type="text" id="username" name="username" required><br>
