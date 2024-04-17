@@ -68,17 +68,39 @@ def get_all_hotels():
     if response.status_code == 200:
         hotels_data = response.json()
         hotels = hotels_data.get('elements', [])
-
-        # Организация отелей по странам и городам
         hotels_by_country = defaultdict(lambda: defaultdict(list))
+        print(hotels_by_country)
         for hotel in hotels:
             country = hotel.get('tags', {}).get('addr:country', 'Неизвестно')
             city = hotel.get('tags', {}).get('addr:city', 'Неизвестно')
             hotels_by_country[country][city].append(hotel)
-
         return render_template('hotels_list.html', hotels_by_country=hotels_by_country)
     else:
         return "Ошибка при получении данных об отелях"
+
+
+# Пустой словарь для хранения данных об отелях по странам и городам
+hotels_by_country = {}
+
+
+@app.route('/get_cities', methods=['POST'])
+def get_cities():
+    # Получаем данные о стране и городах из запроса AJAX
+    data = request.json
+    country_code = data.get('country_code', None)
+    cities = data.get('cities', None)
+
+    if country_code and cities:
+        # Если страна уже есть в словаре, обновляем список городов
+        if country_code in hotels_by_country:
+            hotels_by_country[country_code].update({city: [] for city in cities})
+        else:
+            # Если страны нет в словаре, добавляем ее и список городов
+            hotels_by_country[country_code] = {city: [] for city in cities}
+
+        return jsonify({"message": "Data added successfully!"}), 200
+    else:
+        return jsonify({"error": "Invalid data received"}), 400
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -101,6 +123,7 @@ def profile():
                 return redirect(url_for('index'))
         return render_template('profile.html', user=user)
     return redirect(url_for('login'))
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -211,11 +234,13 @@ def chatbot_response(message):
     # Если нет подходящего ответа, возвращаем сообщение о непонимании
     return "Извините, я не понял вашего сообщения."
 
+
 @app.route('/send_message', methods=['POST'])
 def send_message():
     user_message = request.form['message']
     bot_response = chatbot_response(user_message)
     return jsonify({'user_message': user_message, 'bot_response': bot_response})
+
 
 @app.route('/apply_for_owner', methods=['GET', 'POST'])
 def apply_for_owner():

@@ -33,7 +33,7 @@
     <script>
         $(document).ready(function() {
             $('.bookButton').click(function(e) {
-                e.preventDefault(); // предотвращаем отправку формы
+                e.preventDefault();
                 var roomId = $(this).val();
                 $.ajax({
                     url: '/get_all_hotels',
@@ -41,6 +41,26 @@
                     success: function(response) {
                         console.log(response);
                         $('#hotelsList').html(response);
+                    },
+                    error: function(xhr) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+
+            $('#countrySelect').change(function() {
+                var selectedCountry = $(this).val();
+                $.ajax({
+                    url: '/get_cities/' + selectedCountry,
+                    type: 'GET',
+                    success: function(response) {
+                        $('#citySelect').empty();
+                        $.each(response, function(key, value) {
+                            $('#citySelect').append($('<option>', {
+                                value: value,
+                                text: value
+                            }));
+                        });
                     },
                     error: function(xhr) {
                         console.log(xhr.responseText);
