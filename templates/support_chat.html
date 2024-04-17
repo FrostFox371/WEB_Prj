@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Поддержка</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js" integrity="sha384-3Hf3CzT76dEcEoB6wbqIfhgltGYzxtX5OZLuD/TgtDq8h7+M0cHKM5xWu4eGhFl7" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
     <style>
         .message-container {
             margin-bottom: 10px;
@@ -17,45 +17,67 @@
             border-radius: 10px;
         }
     </style>
-    <script type="text/javascript">
-        var socket = io.connect('http://' + document.domain + ':' + location.port);
-
-        socket.on('connect', function() {
-            socket.send('User has connected!');
-        });
-
-        socket.on('my response', function(msg) {
-            console.log('Received message: ' + msg.data);
-        });
-
-        socket.on('message', function(data) {
-            var chatDiv = document.getElementById('chat');
-            var messageContainer = document.createElement('div');
-            messageContainer.classList.add('message-container');
-            var usernameSpan = document.createElement('span');
-            usernameSpan.classList.add('username');
-            usernameSpan.textContent = data.user + ':';
-            var messageSpan = document.createElement('span');
-            messageSpan.classList.add('message');
-            messageSpan.textContent = data.message;
-            messageContainer.appendChild(usernameSpan);
-            messageContainer.appendChild(messageSpan);
-            chatDiv.appendChild(messageContainer);
-        });
-
-        function sendMessage() {
-            var message = document.getElementById('message_input').value;
-            socket.send(message);
-            document.getElementById('message_input').value = '';
-        }
-    </script>
 </head>
 <body>
     <h1>Поддержка</h1>
     <div id="chat"></div>
-    <form action="">
+    <form id="message-form">
         <input type="text" id="message_input">
-        <button type="button" onclick="sendMessage()">Отправить</button>
+        <button type="submit">Отправить</button>
     </form>
+
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Функция для отправки сообщений на сервер и отображения ответов
+        function sendMessage(event) {
+            event.preventDefault(); // Предотвращаем стандартное поведение отправки формы
+
+            var message = document.getElementById('message_input').value;
+            var chatDiv = document.getElementById('chat');
+
+            // Отображаем сообщение пользователя в чате
+            var userMessageContainer = document.createElement('div');
+            userMessageContainer.classList.add('message-container');
+            var userMessageSpan = document.createElement('span');
+            userMessageSpan.classList.add('username');
+            userMessageSpan.textContent = 'You:';
+            var userMessageText = document.createElement('span');
+            userMessageText.classList.add('message');
+            userMessageText.textContent = message;
+            userMessageContainer.appendChild(userMessageSpan);
+            userMessageContainer.appendChild(userMessageText);
+            chatDiv.appendChild(userMessageContainer);
+
+            // Отправляем сообщение на сервер и получаем ответ от бота
+            fetch('/send_message', {
+                method: 'POST',
+                body: new URLSearchParams({'message': message}),
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Отображаем ответ от бота в чате
+                var botResponseContainer = document.createElement('div');
+                botResponseContainer.classList.add('message-container');
+                var botResponseSpan = document.createElement('span');
+                botResponseSpan.classList.add('username');
+                botResponseSpan.textContent = 'Bot:';
+                var botMessageSpan = document.createElement('span');
+                botMessageSpan.classList.add('message');
+                botMessageSpan.textContent = data.bot_response;
+                botResponseContainer.appendChild(botResponseSpan);
+                botResponseContainer.appendChild(botMessageSpan);
+                chatDiv.appendChild(botResponseContainer);
+            })
+            .catch(error => console.error('Error:', error));
+
+            // Очищаем поле ввода сообщения
+            document.getElementById('message_input').value = '';
+        }
+
+        // Обработчик отправки формы
+        document.getElementById('message-form').addEventListener('submit', sendMessage);
+    </script>
 </body>
 </html>

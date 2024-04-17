@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, session, redirect, url_for, flash
+from flask import Flask, render_template, request, session, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 from collections import defaultdict
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
@@ -193,6 +195,27 @@ def search():
 def support_chat():
     return render_template('support_chat.html')
 
+
+# Простой бот
+def chatbot_response(message):
+    responses = {
+        "привет": "Привет! Чем могу помочь?",
+        "как дела": "У меня всё хорошо, спасибо! А у вас?",
+        "спасибо": "Не за что! Если у вас возникнут еще вопросы, обращайтесь.",
+        "пока": "До свидания! Хорошего дня!"
+    }
+    # Проверяем наличие ключевых слов в сообщении и возвращаем соответствующий ответ
+    for keyword, response in responses.items():
+        if keyword in message.lower():
+            return response
+    # Если нет подходящего ответа, возвращаем сообщение о непонимании
+    return "Извините, я не понял вашего сообщения."
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    user_message = request.form['message']
+    bot_response = chatbot_response(user_message)
+    return jsonify({'user_message': user_message, 'bot_response': bot_response})
 
 @app.route('/apply_for_owner', methods=['GET', 'POST'])
 def apply_for_owner():
