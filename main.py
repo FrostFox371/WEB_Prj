@@ -90,7 +90,7 @@ def get_hotels():
             city_country = description.split(', ')[-2:]
             formatted_description = ', '.join(city_country)
             formatted_hotels.append({'name': name, 'description': formatted_description})
-        return jsonify(formatted_hotels)
+        return render_template('hotels_list.html')
 
 
 @app.route('/profile', methods=['GET', 'POST'])
