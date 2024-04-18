@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 from collections import defaultdict
 from flask_socketio import SocketIO
+import json
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -56,51 +57,40 @@ def index():
     return redirect(url_for('login'))
 
 
-@app.route('/get_all_hotels', methods=['GET'])
-def get_all_hotels():
-    url = 'https://overpass-api.de/api/interpreter'
-    query = """
-    [out:json];
-    node["tourism"="hotel"];
-    out;
-    """
-    response = requests.post(url, data=query)
+# Чтение данных из файла JSON
+with open('static/countries.json', 'r') as file:
+    countries_data = json.load(file)
+
+
+@app.route('/get_countries', methods=['GET'])
+def get_countries():
+    return jsonify(countries_data)
+
+
+@app.route('/get_cities/<country>', methods=['GET'])
+def get_cities(country):
+    if country in cities_data:
+        return jsonify(cities_data[country])
+
+
+@app.route('/get_hotels', methods=['GET'])
+def get_hotels():
+    # Выполняем запрос к API Яндекс Карт, чтобы получить данные об отелях
+    api_url = f'https://search-maps.yandex.ru/v1/?apikey=61569184-cebf-45d2-ae48-7b0310aa8707&text=отель&lang=ru_RU&results=50000000'
+    response = requests.get(api_url)
     if response.status_code == 200:
         hotels_data = response.json()
-        hotels = hotels_data.get('elements', [])
-        hotels_by_country = defaultdict(lambda: defaultdict(list))
-        print(hotels_by_country)
-        for hotel in hotels:
-            country = hotel.get('tags', {}).get('addr:country', 'Неизвестно')
-            city = hotel.get('tags', {}).get('addr:city', 'Неизвестно')
-            hotels_by_country[country][city].append(hotel)
-        return render_template('hotels_list.html', hotels_by_country=hotels_by_country)
-    else:
-        return "Ошибка при получении данных об отелях"
-
-
-# Пустой словарь для хранения данных об отелях по странам и городам
-hotels_by_country = {}
-
-
-@app.route('/get_cities', methods=['POST'])
-def get_cities():
-    # Получаем данные о стране и городах из запроса AJAX
-    data = request.json
-    country_code = data.get('country_code', None)
-    cities = data.get('cities', None)
-
-    if country_code and cities:
-        # Если страна уже есть в словаре, обновляем список городов
-        if country_code in hotels_by_country:
-            hotels_by_country[country_code].update({city: [] for city in cities})
-        else:
-            # Если страны нет в словаре, добавляем ее и список городов
-            hotels_by_country[country_code] = {city: [] for city in cities}
-
-        return jsonify({"message": "Data added successfully!"}), 200
-    else:
-        return jsonify({"error": "Invalid data received"}), 400
+        formatted_hotels = []
+        # Обрабатываем ответ и извлекаем необходимые ключи
+        for feature in hotels_data['features']:
+            properties = feature['properties']
+            name = properties['name']
+            description = properties['description']
+            # Форматируем описание, чтобы оставить только город и страну
+            city_country = description.split(', ')[-2:]
+            formatted_description = ', '.join(city_country)
+            formatted_hotels.append({'name': name, 'description': formatted_description})
+        return jsonify(formatted_hotels)
 
 
 @app.route('/profile', methods=['GET', 'POST'])

@@ -1,69 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Список отелей</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotels List</title>
 </head>
 <body>
-    <h3>Выберите страну и город:</h3>
-    <form id="filterForm">
-        <select id="countrySelect">
+    <h1>Hotels List</h1>
+
+    <!-- Форма с фильтрами -->
+    <form id="filterForm" action="/get_hotels" method="get">
+        <label for="countrySelect">Страна:</label>
+        <select id="countrySelect" name="country" autocomplete="country">
             <option value="">Выберите страну</option>
-            {% for country_code, country_data in hotels_by_country.items() %}
-                <option value="{{ country_code }}">{{ country_data['country_name'] }}</option>
-            {% endfor %}
+            <!-- Опции стран будут добавлены с помощью JavaScript -->
         </select>
-        <select id="citySelect">
+        <br>
+        <label for="citySelect">Город:</label>
+        <select id="citySelect" name="city">
             <option value="">Выберите город</option>
+            <!-- Опции городов будут добавлены с помощью JavaScript -->
         </select>
-        <button type="button" id="filterButton">Применить фильтр</button>
+        <br>
+        <button type="submit">Применить фильтр</button>
     </form>
 
-    <h3>Список отелей:</h3>
-    <ul id="hotelsList">
-        <!-- Отели будут отображаться на основе выбранной страны и города -->
+    <hr>
+
+    <!-- Список отелей -->
+    <ul>
+        {% for hotel in hotels %}
+            <li>{{ hotel.name }} - {{ hotel.address }}</li>
+        {% endfor %}
     </ul>
 
+    <!-- JavaScript для добавления опций в выпадающие списки -->
     <script>
-        $(document).ready(function() {
-            $('#countrySelect').change(function() {
-                var selectedCountry = $(this).val();
-                if(selectedCountry) {
-                    $.ajax({
-                        url: '/get_cities',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ 'country_code': selectedCountry }),
-                        success: function(response) {
-                            $('#citySelect').empty();
-                            $.each(response, function(key, value) {
-                                $('#citySelect').append($('<option>', {
-                                    value: value,
-                                    text: value
-                                }));
-                            });
-                        },
-                        error: function(xhr) {
-                            console.log(xhr.responseText);
-                        }
-                    });
-                } else {
-                    $('#citySelect').empty();
-                }
+        // Функция для добавления опций в выпадающий список
+        function addOptions(selectElement, options) {
+            for (let option of options) {
+                let optionElement = document.createElement("option");
+                optionElement.value = option;
+                optionElement.text = option;
+                selectElement.appendChild(optionElement);
+            }
+        }
+
+        // Запрос для получения списка стран и добавление их в выпадающий список
+        fetch('/get_countries')
+            .then(response => response.json())
+            .then(countries => {
+                const countrySelect = document.getElementById('countrySelect');
+                addOptions(countrySelect, countries);
             });
 
-            $('#filterButton').click(function() {
-                var selectedCountry = $('#countrySelect').val();
-                var selectedCity = $('#citySelect').val();
-                var hotels = {{ hotels_by_country | tojson }};
-                var selectedHotels = hotels[selectedCountry][selectedCity];
-                $('#hotelsList').empty();
-                selectedHotels.forEach(function(hotel) {
-                    $('#hotelsList').append($('<li>', {
-                        text: hotel.tags.name // Используйте правильное поле для имени отеля
-                    }));
-                });
-            });
+        // Обработчик изменения выбранной страны
+        document.getElementById('countrySelect').addEventListener('change', function() {
+            const selectedCountry = this.value;
+            const citySelect = document.getElementById('citySelect');
+
+            // Очистка списка городов перед добавлением новых
+            citySelect.innerHTML = '<option value="">Выберите город</option>';
+
+            // Если страна не выбрана, завершаем выполнение
+            if (!selectedCountry) return;
+
+            // Запрос для получения списка городов выбранной страны и добавление их в выпадающий список
+            fetch('/get_cities?country=${selectedCountry}')
+                .then(response => response.json())
+                .then(cities => addOptions(citySelect, cities));
         });
     </script>
 </body>

@@ -14,7 +14,7 @@
         <a href="{{ url_for('logout') }}">Выйти</a>
     </div>
     <h2>Отели:</h2>
-    <a href="{{ url_for('get_all_hotels') }}">Посмотреть все отели мира</a>
+    <a href="{{ url_for('get_hotels') }}">Посмотреть все отели мира</a>
     <form id="bookForm" action="/book" method="post">
         <ul>
             {% for room in rooms %}
