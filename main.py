@@ -53,9 +53,8 @@ class OwnerApplication(db.Model):
 @app.route('/')
 def index():
     if 'username' in session:
-        # rooms = Room.query.all()
-        # return render_template('index.html', rooms=rooms)
-        return render_template('we_will_back_soon.html')
+        return render_template('index.html')
+        # return render_template('we_will_back_soon.html')
         # return render_template('500.html')
     return redirect(url_for('login'))
 
@@ -72,8 +71,13 @@ def get_countries():
 
 @app.route('/get_cities/<country>', methods=['GET'])
 def get_cities(country):
+    print("запрос", country)
     if country in countries_data:
+        cities = countries_data[country]
+        print(cities)
         return jsonify(countries_data[country])
+    else:
+        print('Страна не найдена')
 
 
 @app.route('/get_hotels', methods=['GET'])
@@ -84,7 +88,6 @@ def get_hotels():
     response = requests.get(api_url)
     if response.status_code == 200:
         hotels_data = response.json()
-        print(hotels_data)
         return render_template('hotels_list.html')
 
 
@@ -321,9 +324,9 @@ def http_version_not_supported_error():
     return render_template('505.html')
 
 
-@app.errorhandler(Exception)
-def handle_exception(error):
-    return render_template('500.html', error=error), 500
+# @app.errorhandler(Exception)
+# def handle_exception(error):
+#     return render_template('500.html', error=error), 500
 
 
 if __name__ == '__main__':

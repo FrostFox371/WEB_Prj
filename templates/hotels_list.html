@@ -38,6 +38,7 @@
     <script>
         // Функция для добавления опций в выпадающий список
         function addOptions(selectElement, options) {
+            if (!options) return;
             for (let option of options) {
                 let optionElement = document.createElement("option");
                 optionElement.value = option;
@@ -46,29 +47,35 @@
             }
         }
 
-        // Запрос для получения списка стран и добавление их в выпадающий список
-        fetch('/get_countries')
-            .then(response => response.json())
-            .then(countries => {
-                const countrySelect = document.getElementById('countrySelect');
-                addOptions(countrySelect, countries);
-            });
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/get_countries')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Полученные данные:', data);
+                    const countrySelect = document.getElementById('countrySelect');
+                    const countries = Object.keys(data); // Преобразуем объект в массив названий стран
+                    addOptions(countrySelect, countries);
+                })
+                .catch(error => console.error('Ошибка при получении стран:', error));
+        });
 
-        // Обработчик изменения выбранной страны
         document.getElementById('countrySelect').addEventListener('change', function() {
             const selectedCountry = this.value;
             const citySelect = document.getElementById('citySelect');
+            citySelect.innerHTML = '<option value="">Выберите город</option>'; // Очищаем список городов
 
-            // Очистка списка городов перед добавлением новых
-            citySelect.innerHTML = '<option value="">Выберите город</option>';
-
-            // Если страна не выбрана, завершаем выполнение
             if (!selectedCountry) return;
 
-            // Запрос для получения списка городов выбранной страны и добавление их в выпадающий список
-            fetch('/get_cities?country=${selectedCountry}')
+            console.log('Выбранная страна:', selectedCountry);
+
+            fetch('/get_cities/${selectedCountry}')
                 .then(response => response.json())
-                .then(cities => addOptions(citySelect, cities));
+                .then(data => {
+                    console.log('Полученные города:', data);
+                    const cities = data[selectedCountry]; // Получаем массив городов для выбранной страны
+                    addOptions(citySelect, cities);
+                })
+                .catch(error => console.error('Ошибка при получении городов:', error));
         });
     </script>
 </body>
