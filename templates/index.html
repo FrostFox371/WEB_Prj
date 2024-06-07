@@ -5,12 +5,13 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='forbidden.ico') }}">
     <h1>Добро пожаловать в систему бронирования отелей!</h1>
     <div>
         <a href="{{ url_for('profile') }}">Личный кабинет</a>
-        <a href="#">Поиск</a>
+        <a href="{{ url_for('search') }}">Поиск</a>
         <a href="{{ url_for('support_chat') }}">Поддержка</a>
-        <a href="#">Уведомления</a>
+        <a href="{{ url_for('notifications') }}">Уведомления</a>
         <a href="{{ url_for('logout') }}">Выйти</a>
     </div>
     <h2>Отели:</h2>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, session, redirect, url_for, flash, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
@@ -52,9 +52,16 @@ class OwnerApplication(db.Model):
 @app.route('/')
 def index():
     if 'username' in session:
-        rooms = Room.query.all()
-        return render_template('index.html', rooms=rooms)
+        #rooms = Room.query.all()
+        #return render_template('index.html', rooms=rooms)
+        return render_template('we_will_back_soon.html')
     return redirect(url_for('login'))
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'forbidden.ico')
 
 
 # Чтение данных из файла JSON
@@ -69,14 +76,15 @@ def get_countries():
 
 @app.route('/get_cities/<country>', methods=['GET'])
 def get_cities(country):
-    if country in cities_data:
-        return jsonify(cities_data[country])
+    if country in countries_data:
+        return jsonify(countries_data[country])
 
 
 @app.route('/get_hotels', methods=['GET'])
 def get_hotels():
     # Выполняем запрос к API Яндекс Карт, чтобы получить данные об отелях
-    api_url = f'https://search-maps.yandex.ru/v1/?apikey=61569184-cebf-45d2-ae48-7b0310aa8707&text=отель&lang=ru_RU&results=50000000'
+    api_url = ('https://search-maps.yandex.ru/v1/?apikey=61569184-cebf-45d2-'
+               'ae48-7b0310aa8707&text=отель&lang=ru_RU&results=50000000')
     response = requests.get(api_url)
     if response.status_code == 200:
         hotels_data = response.json()
@@ -178,20 +186,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/book', methods=['POST'])
-def book():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    room_id = int(request.form['room_id'])
-    room = Room.query.get(room_id)
-    if room.available:
-        room.available = False
-        db.session.commit()
-        return f"Room {room_id} has been booked successfully!"
-    else:
-        return "Sorry, the selected room is not available."
-
-
 @app.route('/notifications')
 def notifications():
     # Логика для получения уведомлений из базы данных
@@ -289,44 +283,46 @@ def process_application(application_id, action):
 
 
 # Обработчики ошибок
+@app.route('/400')
 @app.errorhandler(400)
-def bad_request_error(error):
-    return render_template('error.html', error_code=400, error_message="Bad Request"), 400
+def bad_request_error():
+    return render_template('400.html')
 
-
+@app.route('/401')
 @app.errorhandler(401)
-def unauthorized_error(error):
-    return render_template('error.html', error_code=401, error_message="Unauthorized"), 401
+def unauthorized_error():
+    return render_template('401.html')
 
-
+@app.route('/403')
 @app.errorhandler(403)
-def forbidden_error(error):
-    return render_template('error.html', error_code=403, error_message="Forbidden"), 403
+def forbidden_error():
+    return render_template('403.html')
 
-
+@app.route('/404')
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('error.html', error_code=404, error_message="Page not found"), 404
+    return render_template('404.html')
 
 
+@app.route('/500')
 @app.errorhandler(500)
-def internal_error(error):
-    return render_template('error.html', error_code=500, error_message="Internal Server Error"), 500
+def internal_error():
+    return render_template('500.html')
 
-
+@app.route('/502')
 @app.errorhandler(502)
-def bad_gateway_error(error):
-    return render_template('error.html', error_code=502, error_message="Bad Gateway"), 502
+def bad_gateway_error():
+    return render_template('502.html')
 
-
+@app.route('/503')
 @app.errorhandler(503)
-def service_unavailable_error(error):
-    return render_template('error.html', error_code=503, error_message="Service Unavailable"), 503
+def service_unavailable_error():
+    return render_template('503.html')
 
-
+@app.route('/505')
 @app.errorhandler(505)
-def http_version_not_supported_error(error):
-    return render_template('error.html', error_code=505, error_message="HTTP Version Not Supported"), 505
+def http_version_not_supported_error():
+    return render_template('505.html')
 
 
 if __name__ == '__main__':
