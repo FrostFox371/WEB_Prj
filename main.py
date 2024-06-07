@@ -53,16 +53,11 @@ class OwnerApplication(db.Model):
 @app.route('/')
 def index():
     if 'username' in session:
-        #rooms = Room.query.all()
-        #return render_template('index.html', rooms=rooms)
+        # rooms = Room.query.all()
+        # return render_template('index.html', rooms=rooms)
         return render_template('we_will_back_soon.html')
+        # return render_template('500.html')
     return redirect(url_for('login'))
-
-
-@app.route('/forbidden.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'forbidden.ico')
 
 
 # Чтение данных из файла JSON
@@ -195,7 +190,6 @@ def support_chat():
     return render_template('support_chat.html')
 
 
-# Простой бот
 def chatbot_response(message):
     responses = {
         "привет": "Привет! Чем могу помочь?",
@@ -226,6 +220,11 @@ def apply_for_owner():
         phone = request.form['phone']
         address = request.form['address']
         additional_info = request.form['additional_info']
+
+        existing_application = OwnerApplication.query.filter_by(email=email).first()
+        if existing_application:
+            flash('Email уже существует в наших записях. Пожалуйста, используйте другой email.')
+            return redirect(url_for('apply_for_owner'))
 
         new_application = OwnerApplication(name=name, email=email, phone=phone, address=address,
                                            additional_info=additional_info)
@@ -280,10 +279,12 @@ def process_application(application_id, action):
 def bad_request_error():
     return render_template('400.html')
 
+
 @app.route('/401')
 @app.errorhandler(401)
 def unauthorized_error():
     return render_template('401.html')
+
 
 @app.route('/403')
 @app.errorhandler(403)
@@ -300,20 +301,27 @@ def not_found_error(error):
 def internal_error():
     return render_template('500.html')
 
+
 @app.route('/502')
 @app.errorhandler(502)
 def bad_gateway_error():
     return render_template('502.html')
+
 
 @app.route('/503')
 @app.errorhandler(503)
 def service_unavailable_error():
     return render_template('503.html')
 
+
 @app.route('/505')
 @app.errorhandler(505)
 def http_version_not_supported_error():
     return render_template('505.html')
+
+# @app.errorhandler(Exception)
+# def handle_exception(error):
+#     return render_template('500.html', error=error), 500
 
 
 if __name__ == '__main__':
