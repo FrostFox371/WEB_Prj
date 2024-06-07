@@ -321,9 +321,9 @@ def http_version_not_supported_error():
     return render_template('505.html')
 
 
-# @app.errorhandler(Exception)
-# def handle_exception(error):
-#     return render_template('500.html', error=error), 500
+@app.errorhandler(Exception)
+def handle_exception(error):
+    return render_template('500.html', error=error), 500
 
 
 if __name__ == '__main__':
