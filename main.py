@@ -291,6 +291,7 @@ def unauthorized_error():
 def forbidden_error():
     return render_template('403.html')
 
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html')
@@ -318,6 +319,7 @@ def service_unavailable_error():
 @app.errorhandler(505)
 def http_version_not_supported_error():
     return render_template('505.html')
+
 
 # @app.errorhandler(Exception)
 # def handle_exception(error):
