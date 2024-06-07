@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,6 +38,7 @@
     <script>
         // Функция для добавления опций в выпадающий список
         function addOptions(selectElement, options) {
+            console.log('Добавление опций в список:', options);
             if (!options) return;
             for (let option of options) {
                 let optionElement = document.createElement("option");
@@ -62,15 +62,19 @@
 
         document.getElementById('countrySelect').addEventListener('change', function() {
             const selectedCountry = this.value;
+            console.log('Выбранная страна:', selectedCountry);
             const citySelect = document.getElementById('citySelect');
             citySelect.innerHTML = '<option value="">Выберите город</option>'; // Очищаем список городов
 
             if (!selectedCountry) return;
 
-            console.log('Выбранная страна:', selectedCountry);
-
             fetch(`/get_cities/${selectedCountry}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     console.log('Полученные города:', data);
                     const cities = data[selectedCountry]; // Получаем массив городов для выбранной страны
