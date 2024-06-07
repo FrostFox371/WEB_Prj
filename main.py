@@ -5,11 +5,12 @@ import requests
 from collections import defaultdict
 from flask_socketio import SocketIO
 import json
+import os
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = 'key'
 db = SQLAlchemy(app)
 
 
@@ -58,7 +59,7 @@ def index():
     return redirect(url_for('login'))
 
 
-@app.route('/favicon.ico')
+@app.route('/forbidden.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'forbidden.ico')
@@ -88,16 +89,7 @@ def get_hotels():
     response = requests.get(api_url)
     if response.status_code == 200:
         hotels_data = response.json()
-        formatted_hotels = []
-        # Обрабатываем ответ и извлекаем необходимые ключи
-        for feature in hotels_data['features']:
-            properties = feature['properties']
-            name = properties['name']
-            description = properties['description']
-            # Форматируем описание, чтобы оставить только город и страну
-            city_country = description.split(', ')[-2:]
-            formatted_description = ', '.join(city_country)
-            formatted_hotels.append({'name': name, 'description': formatted_description})
+        print(hotels_data)
         return render_template('hotels_list.html')
 
 
