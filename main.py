@@ -78,6 +78,7 @@ def get_cities(country):
         return jsonify(countries_data[country])
     else:
         print('Страна не найдена')
+        return jsonify([])
 
 
 @app.route('/get_hotels', methods=['GET'])
