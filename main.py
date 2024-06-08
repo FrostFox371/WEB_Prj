@@ -58,6 +58,7 @@ def index():
         # return render_template('500.html')
     return redirect(url_for('login'))
 
+
 @app.route('/mainpage')
 def mainn():
     return render_template('index.html')
@@ -299,6 +300,7 @@ def forbidden_error():
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html')
+
 
 @app.route('/405')
 @app.errorhandler(405)
