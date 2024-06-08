@@ -226,7 +226,8 @@ def apply_for_owner():
 
         existing_application = OwnerApplication.query.filter_by(email=email).first()
         if existing_application:
-            flash('Email уже существует в наших записях. Пожалуйста, используйте другой email.')
+            flash('Email уже существует в наших записях. Пожалуйста, используйте другой email. '
+                  'Если вы хотите добавить к своему аккаунту новые отели - обратитесь к поддержке.')
             return redirect(url_for('apply_for_owner'))
 
         new_application = OwnerApplication(name=name, email=email, phone=phone, address=address,
