@@ -84,6 +84,7 @@ def get_cities(country):
 def get_hotels():
     country = request.args.get('country')
     city = request.args.get('city')
+
     # Выполняем запрос к API Яндекс Карт с фильтрацией по стране и городу
     api_url = (
         f'https://search-maps.yandex.ru/v1/?apikey=61569184-cebf-45d2-ae48-7b0310aa8707&text=отель+{city}+{country}'
@@ -102,8 +103,7 @@ def get_hotels():
         return render_template('hotels_list.html', hotels=hotels)
     else:
         flash("Ошибка при получении данных об отелях")
-        return redirect(url_for('index'))
-
+        return redirect(url_for('mainn'))
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -346,9 +346,9 @@ def http_version_not_supported_error():
     return render_template('505.html')
 
 
-@app.errorhandler(Exception)
-def handle_exception(error):
-    return render_template('500.html', error=error), 500
+# @app.errorhandler(Exception)
+# def handle_exception(error):
+#    return render_template('500.html', error=error), 500
 
 
 if __name__ == '__main__':

@@ -1,24 +1,23 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotels List</title>
+    <title>Список отелей</title>
 </head>
 <body>
-    <h1>Hotels List</h1>
+    <h1>Список отелей</h1>
 
     <!-- Форма с фильтрами -->
     <form id="filterForm" action="/get_hotels" method="get">
         <label for="countrySelect">Страна:</label>
-        <select id="countrySelect" name="country" autocomplete="country">
+        <select id="countrySelect" name="country" autocomplete="country" required>
             <option value="">Выберите страну</option>
             <!-- Опции стран будут добавлены с помощью JavaScript -->
         </select>
         <br>
         <label for="citySelect">Город:</label>
-        <select id="citySelect" name="city">
+        <select id="citySelect" name="city" required>
             <option value="">Выберите город</option>
             <!-- Опции городов будут добавлены с помощью JavaScript -->
         </select>
@@ -30,9 +29,13 @@
 
     <!-- Список отелей -->
     <ul>
-        {% for hotel in hotels %}
-            <li>{{ hotel.name }} - {{ hotel.address }}</li>
-        {% endfor %}
+        {% if hotels %}
+            {% for hotel in hotels %}
+                <li>{{ hotel.name }} - {{ hotel.address }}</li>
+            {% endfor %}
+        {% else %}
+            <li>Нет доступных отелей.</li>
+        {% endif %}
     </ul>
 
     <!-- JavaScript для добавления опций в выпадающие списки -->
