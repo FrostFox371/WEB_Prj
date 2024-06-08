@@ -46,7 +46,7 @@
                 optionElement.text = option;
                 selectElement.appendChild(optionElement);
             }
-        }
+}
 
         document.addEventListener('DOMContentLoaded', function() {
             fetch('/get_countries')
@@ -68,7 +68,7 @@
 
             if (!selectedCountry) return;
 
-            fetch(`/get_cities/${selectedCountry}`)
+            fetch(`/get_cities/${selectedCountry}`)  // Исправленный URL
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -77,11 +77,10 @@
                 })
                 .then(data => {
                     console.log('Полученные города:', data);
-                    const cities = data[selectedCountry]; // Получаем массив городов для выбранной страны
-                    addOptions(citySelect, cities);
+                    addOptions(citySelect, data);  // Передаем массив городов
                 })
                 .catch(error => console.error('Ошибка при получении городов:', error));
-        });
+});
     </script>
 </body>
 </html>

@@ -53,10 +53,14 @@ class OwnerApplication(db.Model):
 @app.route('/')
 def index():
     if 'username' in session:
-        return render_template('index.html')
-        # return render_template('we_will_back_soon.html')
+        # return render_template('index.html')
+        return render_template('dev_project.html')
         # return render_template('500.html')
     return redirect(url_for('login'))
+
+@app.route('/mainpage')
+def mainn():
+    return render_template('index.html')
 
 
 # Чтение данных из файла JSON
@@ -182,11 +186,6 @@ def notifications():
     # Логика для получения уведомлений из базы данных
     notifications = []  # Здесь должна быть логика для получения уведомлений
     return render_template('notifications.html', notifications=notifications)
-
-
-@app.route('/search')
-def search():
-    return render_template('search.html')
 
 
 @app.route('/support_chat')
@@ -325,9 +324,9 @@ def http_version_not_supported_error():
     return render_template('505.html')
 
 
-# @app.errorhandler(Exception)
-# def handle_exception(error):
-#     return render_template('500.html', error=error), 500
+@app.errorhandler(Exception)
+def handle_exception(error):
+    return render_template('500.html', error=error), 500
 
 
 if __name__ == '__main__':

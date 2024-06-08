@@ -9,66 +9,11 @@
     <h1>Добро пожаловать в систему бронирования отелей!</h1>
     <div>
         <a href="{{ url_for('profile') }}">Личный кабинет</a>
-        <a href="{{ url_for('search') }}">Поиск</a>
         <a href="{{ url_for('support_chat') }}">Поддержка</a>
         <a href="{{ url_for('notifications') }}">Уведомления</a>
         <a href="{{ url_for('logout') }}">Выйти</a>
     </div>
     <h2>Отели:</h2>
     <a href="{{ url_for('get_hotels') }}">Посмотреть все отели мира</a>
-    <form id="bookForm" action="/book" method="post">
-        <ul>
-            {% for room in rooms %}
-                <li>
-                    {{ room.name }} -
-                    {% if room.available %}
-                        <button type="submit" class="bookButton" name="room_id" value="{{ room.id }}">Book</button>
-                    {% else %}
-                        Нет свободных мест
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    </form>
-    <div id="hotelsList"></div>
-    <script>
-        $(document).ready(function() {
-            $('.bookButton').click(function(e) {
-                e.preventDefault();
-                var roomId = $(this).val();
-                $.ajax({
-                    url: '/get_all_hotels',
-                    type: 'GET',
-                    success: function(response) {
-                        console.log(response);
-                        $('#hotelsList').html(response);
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
-                    }
-                });
-            });
-
-            $('#countrySelect').change(function() {
-                var selectedCountry = $(this).val();
-                $.ajax({
-                    url: '/get_cities/' + selectedCountry,
-                    type: 'GET',
-                    success: function(response) {
-                        $('#citySelect').empty();
-                        $.each(response, function(key, value) {
-                            $('#citySelect').append($('<option>', {
-                                value: value,
-                                text: value
-                            }));
-                        });
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
-                    }
-                });
-            });
-        });
-    </script>
 </body>
 </html>
