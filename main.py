@@ -76,25 +76,33 @@ def get_countries():
 
 @app.route('/get_cities/<country>', methods=['GET'])
 def get_cities(country):
-    print("запрос", country)
     if country in countries_data:
-        cities = countries_data[country]
-        print(cities)
         return jsonify(countries_data[country])
-    else:
-        print('Страна не найдена')
-        return jsonify([])
 
 
 @app.route('/get_hotels', methods=['GET'])
 def get_hotels():
-    # Выполняем запрос к API Яндекс Карт, чтобы получить данные об отелях
-    api_url = ('https://search-maps.yandex.ru/v1/?apikey=61569184-cebf-45d2-'
-               'ae48-7b0310aa8707&text=отель&lang=ru_RU&results=50000000')
+    country = request.args.get('country')
+    city = request.args.get('city')
+    # Выполняем запрос к API Яндекс Карт с фильтрацией по стране и городу
+    api_url = (
+        f'https://search-maps.yandex.ru/v1/?apikey=61569184-cebf-45d2-ae48-7b0310aa8707&text=отель+{city}+{country}'
+        '&lang=ru_RU&results=50000000')
     response = requests.get(api_url)
+
     if response.status_code == 200:
         hotels_data = response.json()
-        return render_template('hotels_list.html')
+        hotels = []
+        for feature in hotels_data['features']:
+            hotel = {
+                'name': feature['properties']['CompanyMetaData']['name'],
+                'address': feature['properties']['CompanyMetaData']['address']
+            }
+            hotels.append(hotel)
+        return render_template('hotels_list.html', hotels=hotels)
+    else:
+        flash("Ошибка при получении данных об отелях")
+        return redirect(url_for('index'))
 
 
 @app.route('/profile', methods=['GET', 'POST'])
