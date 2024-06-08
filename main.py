@@ -299,6 +299,17 @@ def forbidden_error():
 def not_found_error(error):
     return render_template('404.html')
 
+@app.route('/405')
+@app.errorhandler(405)
+def method_not_allowed_error():
+    return render_template('405.html')
+
+
+@app.route('/418')
+@app.errorhandler(418)
+def iam_a_teapot_error():
+    return render_template('418.html')
+
 
 @app.route('/500')
 @app.errorhandler(500)
