@@ -102,8 +102,8 @@ def get_hotels():
             hotels.append(hotel)
         return render_template('hotels_list.html', hotels=hotels)
     else:
-        flash("Ошибка при получении данных об отелях")
-        return redirect(url_for('mainn'))
+        return render_template('400.html')
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -312,7 +312,7 @@ def not_found_error(error):
 
 @app.route('/405')
 @app.errorhandler(405)
-def method_not_allowed_error():
+def method_not_allowed_error(error):
     return render_template('405.html')
 
 
@@ -346,9 +346,9 @@ def http_version_not_supported_error():
     return render_template('505.html')
 
 
-# @app.errorhandler(Exception)
-# def handle_exception(error):
-#    return render_template('500.html', error=error), 500
+@app.errorhandler(Exception)
+def handle_exception(error):
+    return render_template('500.html', error=error), 500
 
 
 if __name__ == '__main__':
